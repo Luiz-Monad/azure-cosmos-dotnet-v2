@@ -11,10 +11,6 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 {
-	using RequestOptions = Microsoft.Azure.Documents.Client.RequestOptions;
-	using ResourceResponse_DocumentCollection = Microsoft.Azure.Documents.Client.ResourceResponse<Documents.DocumentCollection>;
-	using ResourceResponse_Database = Microsoft.Azure.Documents.Client.ResourceResponse<Documents.Database>;
-
 	internal sealed class DocumentCollectionBaseHelpers
 	{
 		private const int DefaultOfferThroughput = 800;
@@ -23,13 +19,13 @@ namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 
 		private const string TestRowKey = "{E18FAFBA-1953-4CB9-83B8-066D2121717D}";
 
-		public static async Task<ResourceResponse_DocumentCollection> HandleDocumentCollectionRetrieveAsync(string tableName, IDocumentClient client)
+		public static async Task<ResourceResponse<DocumentCollection>> HandleDocumentCollectionRetrieveAsync(string tableName, IDocumentClient client)
 		{
 			Uri uri = UriFactory.CreateDocumentCollectionUri("TablesDB", tableName);
 			return await client.ReadDocumentCollectionAsync(uri.ToString());
 		}
 
-		public static async Task<ResourceResponse_DocumentCollection> HandleCollectionFeedInsertAsync(
+		public static async Task<ResourceResponse<DocumentCollection>> HandleCollectionFeedInsertAsync(
 			IDocumentClient client, string collectionName, IndexingPolicy indexingPolicy, RequestOptions requestOption)
 		{
 			await ThrowIfCollectionExists(client, collectionName);
@@ -42,7 +38,7 @@ namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 				}
 				requestOption.OfferThroughput = 800;
 			}
-			ResourceResponse_DocumentCollection collectionResponse2 = null;
+			ResourceResponse<DocumentCollection> collectionResponse2 = null;
 			try
 			{
 				collectionResponse2 = await CreateDocumentCollectionAsync(collectionName, client, indexingPolicy, requestOption);
@@ -64,9 +60,9 @@ namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 			return collectionResponse2;
 		}
 
-		public static async Task<ResourceResponse_Database> CreateTablesDB(IDocumentClient client)
+		public static async Task<ResourceResponse<Database>> CreateTablesDB(IDocumentClient client)
 		{
-			ResourceResponse_Database response = null;
+			ResourceResponse<Database> response = null;
 			try
 			{
 				response = await client.CreateDatabaseAsync(new Documents.Database
@@ -85,7 +81,7 @@ namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 			}
 		}
 
-		private static async Task<ResourceResponse_DocumentCollection> CreateDocumentCollectionAsync(
+		private static async Task<ResourceResponse<DocumentCollection>> CreateDocumentCollectionAsync(
 			string collectionName, IDocumentClient client, IndexingPolicy indexingPolicy, RequestOptions requestOption)
 		{
 			Uri uri = UriFactory.CreateDatabaseUri("TablesDB");

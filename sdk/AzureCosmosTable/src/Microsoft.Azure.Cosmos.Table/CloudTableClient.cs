@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Cosmos.Table
 	{
 		private string _accountName;
 
-		internal static Func<Uri, string, ConnectionPolicy, Microsoft.Azure.Documents.ConsistencyLevel?, IDocumentClient> DocClientCreator = 
+		internal static Func<Uri, string, ConnectionPolicy, ConsistencyLevel?, IDocumentClient> DocClientCreator = 
 			(accountUri, key, connectionPolicy, consistencyLevel) => 
 				new DocumentClient(accountUri, key, EntityTranslator.JsonSerializerSettings, connectionPolicy, consistencyLevel);
 
@@ -369,11 +369,11 @@ namespace Microsoft.Azure.Cosmos.Table
 			return DocClientCreator(docDbDirectUrl, Credentials.Key, connectionPolicy, ToDocDbConsistencyLevel(cosmosExecutorConfiguration.ConsistencyLevel));
 		}
 
-		internal static Microsoft.Azure.Documents.ConsistencyLevel? ToDocDbConsistencyLevel(ConsistencyLevel? consistencyLevel)
+		internal static ConsistencyLevel? ToDocDbConsistencyLevel(ConsistencyLevel? consistencyLevel)
 		{
 			if (consistencyLevel.HasValue)
 			{
-				return (Microsoft.Azure.Documents.ConsistencyLevel)consistencyLevel.Value;
+				return (ConsistencyLevel)consistencyLevel.Value;
 			}
 			return null;
 		}

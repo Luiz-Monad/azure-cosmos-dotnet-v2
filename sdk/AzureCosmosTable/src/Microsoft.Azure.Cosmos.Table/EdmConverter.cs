@@ -6,8 +6,6 @@ using System.Globalization;
 
 namespace Microsoft.Azure.Cosmos.Table
 {
-	using Microsoft.Azure.Documents.Interop.Common.Schema;
-	
 	internal static class EdmConverter
 	{
 		public static void GetPropertiesFromDocument(IList<string> selectColumns, string serializedDocument, out IDictionary<string, EntityProperty> entityProperties, out IDictionary<string, EntityProperty> documentDBProperties)

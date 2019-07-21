@@ -1,10 +1,11 @@
+using Microsoft.Azure.Documents;
+using Microsoft.Azure.Documents.Client;
+
 namespace Microsoft.Azure.Cosmos.Table
 {
-	using ConnectionMode = Microsoft.Azure.Documents.Client.ConnectionMode;
 	using ConnectionProtocol = Microsoft.Azure.Documents.Client.Protocol;
-	using ConnectionPolicy = Microsoft.Azure.Documents.Client.ConnectionPolicy;
 
-	public class CosmosExecutorConfiguration
+    public class CosmosExecutorConfiguration
 	{
 		public bool UseConnectionModeDirect
 		{

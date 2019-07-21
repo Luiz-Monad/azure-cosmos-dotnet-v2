@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Azure.Documents;
 
 namespace Microsoft.Azure.Cosmos.Table
 {

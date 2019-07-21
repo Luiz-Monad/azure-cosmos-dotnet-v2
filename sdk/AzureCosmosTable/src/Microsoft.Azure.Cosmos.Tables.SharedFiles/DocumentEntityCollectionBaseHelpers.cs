@@ -8,9 +8,6 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 {
-	using PartitionKey = Microsoft.Azure.Documents.PartitionKey;
-	using RequestOptions = Microsoft.Azure.Documents.Client.RequestOptions;
-
 	internal sealed class DocumentEntityCollectionBaseHelpers
 	{
 		public static async Task<ResourceResponse<Document>> HandleEntityRetrieveAsync(string tableName, string partitionKey, string rowKey, IDocumentClient client, RequestOptions requestOptions, CancellationToken cancellationToken)

@@ -13,9 +13,6 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Cosmos.Table.Extensions
 {
-	using PartitionKey = Microsoft.Azure.Documents.PartitionKey;
-	using RequestOptions = Microsoft.Azure.Documents.Client.RequestOptions;
-
 	internal static class TableExtensionOperationHelper
 	{
 		internal static async Task<TResult> ExecuteOperationAsync<TResult>(TableOperation operation, CloudTableClient client, CloudTable table, TableRequestOptions requestOptions, OperationContext operationContext, CancellationToken cancellationToken) where TResult : class
