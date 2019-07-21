@@ -1,0 +1,17 @@
+namespace Microsoft.Azure.Documents
+{
+	/// <summary>
+	/// The formatting policy associated with JSON serialization/de-serialization in the Azure Cosmos DB service.
+	/// </summary>
+	public enum SerializationFormattingPolicy
+	{
+		/// <summary> 
+		/// No additional formatting required.
+		/// </summary>
+		None,
+		/// <summary>
+		/// Indent the fields appropriately.
+		/// </summary>
+		Indented
+	}
+}

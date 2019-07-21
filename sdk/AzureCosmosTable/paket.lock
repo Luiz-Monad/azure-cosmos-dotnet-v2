@@ -1,0 +1,11 @@
+STORAGE: NONE
+RESTRICTION: == netstandard2.0
+NUGET
+  remote: https://www.nuget.org/api/v2
+    Microsoft.CSharp (4.5)
+    Microsoft.OData.Core (7.6)
+      Microsoft.OData.Edm (7.6)
+      Microsoft.Spatial (7.6)
+    Microsoft.OData.Edm (7.6)
+    Microsoft.Spatial (7.6)
+    Newtonsoft.Json (12.0.2)
