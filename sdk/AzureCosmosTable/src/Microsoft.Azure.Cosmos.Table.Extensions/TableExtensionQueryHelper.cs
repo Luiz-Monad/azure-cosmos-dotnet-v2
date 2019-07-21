@@ -18,20 +18,23 @@ namespace Microsoft.Azure.Cosmos.Table.Extensions
 			','
 		};
 
-		internal static async Task<TableQuerySegment<TResult>> QueryCollectionsAsync<TResult>(int? maxItemCount, string filterString, TableContinuationToken token, CloudTableClient client, CloudTable table, TableRequestOptions requestOptions, OperationContext operationContext)
+		internal static async Task<TableQuerySegment<TResult>> QueryCollectionsAsync<TResult>(int? maxItemCount, string filterString, 
+			TableContinuationToken token, CloudTableClient client, CloudTable table, TableRequestOptions requestOptions, OperationContext operationContext)
 		{
 			ValidateContinuationToken(token);
 			FeedOptions defaultFeedOptions = GetDefaultFeedOptions(requestOptions);
 			defaultFeedOptions.RequestContinuation = token?.NextRowKey;
-			FeedResponse<DocumentCollection> feedResponse;
+			Microsoft.Azure.Documents.Client.FeedResponse<DocumentCollection> feedResponse;
 			if (string.IsNullOrEmpty(filterString))
 			{
-				feedResponse = await client.DocumentClient.CreateDocumentCollectionQuery(UriFactory.CreateDatabaseUri("TablesDB"), defaultFeedOptions).AsDocumentQuery().ExecuteNextAsync<DocumentCollection>();
+				feedResponse = await client.DocumentClient.CreateDocumentCollectionQuery(
+					UriFactory.CreateDatabaseUri("TablesDB"), defaultFeedOptions).AsDocumentQuery().ExecuteNextAsync<DocumentCollection>();
 			}
 			else
 			{
 				string sqlQuery = QueryTranslator.GetSqlQuery("*", filterString, isLinqExpression: false, isTableQuery: true, null);
-				feedResponse = await client.DocumentClient.CreateDocumentCollectionQuery(UriFactory.CreateDatabaseUri("TablesDB"), sqlQuery, defaultFeedOptions).AsDocumentQuery().ExecuteNextAsync<DocumentCollection>();
+				feedResponse = await client.DocumentClient.CreateDocumentCollectionQuery(
+					UriFactory.CreateDatabaseUri("TablesDB"), sqlQuery, defaultFeedOptions).AsDocumentQuery().ExecuteNextAsync<DocumentCollection>();
 			}
 			operationContext.RequestResults.Add(feedResponse.ToRequestResult());
 			List<TResult> list = new List<TResult>();
@@ -60,12 +63,15 @@ namespace Microsoft.Azure.Cosmos.Table.Extensions
 			return tableQuerySegment;
 		}
 
-		internal static async Task<TableQuerySegment<TResult>> QueryDocumentsAsync<TResult>(int? maxItemCount, string filterString, IList<string> selectColumns, TableContinuationToken token, CloudTableClient client, CloudTable table, EntityResolver<TResult> resolver, TableRequestOptions requestOptions, OperationContext operationContext, bool isLinqExpression, IList<OrderByItem> orderByItems)
+		internal static async Task<TableQuerySegment<TResult>> QueryDocumentsAsync<TResult>(int? maxItemCount, string filterString, IList<string> selectColumns, 
+			TableContinuationToken token, CloudTableClient client, CloudTable table, EntityResolver<TResult> resolver, TableRequestOptions requestOptions, 
+			OperationContext operationContext, bool isLinqExpression, IList<OrderByItem> orderByItems)
 		{
 			ValidateContinuationToken(token);
 			selectColumns = ((selectColumns != null) ? new List<string>(selectColumns) : null);
 			Dictionary<string, bool> selectedSystemProperties = new Dictionary<string, bool>();
-			string sqlQuery = QueryTranslator.GetSqlQuery(GetSelectList(selectColumns, requestOptions, out selectedSystemProperties), filterString, isLinqExpression, isTableQuery: false, orderByItems, enableTimestampQuery: true);
+			string sqlQuery = QueryTranslator.GetSqlQuery(GetSelectList(selectColumns, requestOptions, out selectedSystemProperties), filterString, 
+				isLinqExpression, isTableQuery: false, orderByItems, enableTimestampQuery: true);
 			FeedOptions defaultFeedOptions = GetDefaultFeedOptions(requestOptions);
 			if (maxItemCount.HasValue)
 			{
@@ -73,14 +79,21 @@ namespace Microsoft.Azure.Cosmos.Table.Extensions
 			}
 			defaultFeedOptions.SessionToken = requestOptions.SessionToken;
 			defaultFeedOptions.RequestContinuation = token?.NextRowKey;
-			FeedResponse<Document> feedResponse = await client.DocumentClient.CreateDocumentQuery<Document>(table.GetCollectionUri(), sqlQuery, defaultFeedOptions).AsDocumentQuery().ExecuteNextAsync<Document>();
+			Microsoft.Azure.Documents.Client.FeedResponse<Document> feedResponse = 
+				await client.DocumentClient.CreateDocumentQuery<Document>(table.GetCollectionUri(), sqlQuery, defaultFeedOptions).AsDocumentQuery()
+					.ExecuteNextAsync<Document>();
 			operationContext.RequestResults.Add(feedResponse.ToRequestResult());
 			List<TResult> list = new List<TResult>();
 			foreach (Document item in feedResponse)
 			{
-				item.ETag = EtagHelper.ConvertFromBackEndETagFormat(item.ETag);
+				var itemETag = EtagHelper.ConvertFromBackEndETagFormat(item.ETag);
+				item.SetPropertyValue("_etag", itemETag);
 				IDictionary<string, EntityProperty> entityPropertiesFromDocument = EntityTranslator.GetEntityPropertiesFromDocument(item, selectColumns);
-				list.Add(resolver(selectedSystemProperties["PartitionKey"] ? item.GetPropertyValue<string>("$pk") : null, selectedSystemProperties["RowKey"] ? item.GetPropertyValue<string>("$id") : null, selectedSystemProperties["Timestamp"] ? ((DateTimeOffset)item.Timestamp) : default(DateTimeOffset), entityPropertiesFromDocument, selectedSystemProperties["Etag"] ? item.ETag : null));
+				list.Add(resolver(
+					selectedSystemProperties["PartitionKey"] ? item.GetPropertyValue<string>("$pk") : null, 
+					selectedSystemProperties["RowKey"] ? item.GetPropertyValue<string>("$id") : null, 
+					selectedSystemProperties["Timestamp"] ? ((DateTimeOffset)item.Timestamp) : default(DateTimeOffset), 
+					entityPropertiesFromDocument, selectedSystemProperties["Etag"] ? item.ETag : null));
 			}
 			TableQuerySegment<TResult> tableQuerySegment = new TableQuerySegment<TResult>(list);
 			if (!string.IsNullOrEmpty(feedResponse.ResponseContinuation))
@@ -100,11 +113,13 @@ namespace Microsoft.Azure.Cosmos.Table.Extensions
 			{
 				if (!string.IsNullOrEmpty(token.NextPartitionKey))
 				{
-					throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, "Setting the value of the property '{0}' is not supported.", "NextPartitionKey"));
+					throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, 
+					"Setting the value of the property '{0}' is not supported.", "NextPartitionKey"));
 				}
 				if (!string.IsNullOrEmpty(token.NextTableName))
 				{
-					throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, "Setting the value of the property '{0}' is not supported.", "NextTableName"));
+					throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, 
+					"Setting the value of the property '{0}' is not supported.", "NextTableName"));
 				}
 			}
 		}
@@ -146,7 +161,8 @@ namespace Microsoft.Azure.Cosmos.Table.Extensions
 					if (!selectedSystemProperties[key2])
 					{
 						selectedSystemProperties[key2] = true;
-						text = string.Format(CultureInfo.InvariantCulture, "{0}{1}['{2}'],", text, EdmSchemaMapping.EntityName, EdmSchemaMapping.SystemPropertiesMapping[key2]);
+						text = string.Format(CultureInfo.InvariantCulture, "{0}{1}['{2}'],", text, EdmSchemaMapping.EntityName, 
+							EdmSchemaMapping.SystemPropertiesMapping[key2]);
 					}
 				}
 			}

@@ -21,11 +21,12 @@ namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 			}
 			tableErrorResult = new TableErrorResult();
 			tableErrorResult.HttpStatusCode = (int)ex.StatusCode.Value;
-			tableErrorResult.HttpStatusMessage = (string.IsNullOrWhiteSpace(ex.StatusDescription) ? GetStatusDescription(tableErrorResult.HttpStatusCode) : ex.StatusDescription);
+			tableErrorResult.HttpStatusMessage = (string.IsNullOrWhiteSpace(ex.Message) ? 
+				GetStatusDescription(tableErrorResult.HttpStatusCode) : ex.Message);
 			tableErrorResult.ServiceRequestID = ex.ActivityId;
 			tableErrorResult.RequestCharge = ex.RequestCharge;
 			tableErrorResult.ExtendedErrorCode = ex.Error.Code;
-			tableErrorResult.ExtendedErroMessage = ex.Message;
+			tableErrorResult.ExtendedErroMessage = ex.Error.Message;
 			return FillTableErrorResult(tableErrorResult, tableOperation);
 		}
 
@@ -39,7 +40,7 @@ namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 			if (exception is InvalidEtagException)
 			{
 				tableErrorResult.HttpStatusCode = 400;
-				tableErrorResult.HttpStatusMessage = RMResources.BadRequest;
+				tableErrorResult.HttpStatusMessage = /*RMResources.BadRequest*/ HttpStatusCode.BadRequest.ToString();
 				tableErrorResult.ExtendedErrorCode = HttpStatusCode.BadRequest.ToString();
 				tableErrorResult.ExtendedErroMessage = exception.Message;
 				return tableErrorResult;
@@ -47,9 +48,9 @@ namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 			if (exception is InvalidFilterException)
 			{
 				tableErrorResult.HttpStatusCode = 400;
-				tableErrorResult.HttpStatusMessage = RMResources.BadRequest;
+				tableErrorResult.HttpStatusMessage = /*RMResources.BadRequest*/ HttpStatusCode.BadRequest.ToString();
 				tableErrorResult.ExtendedErrorCode = TableErrorCodeStrings.InvalidInput;
-				tableErrorResult.ExtendedErroMessage = RMResources.BadUrl;
+				tableErrorResult.ExtendedErroMessage = /*RMResources.BadUrl*/ "Request url is invalid.";
 				return tableErrorResult;
 			}
 			tableErrorResult.HttpStatusCode = 500;
@@ -89,7 +90,7 @@ namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 					tableErrorResult.HttpStatusCode = 429;
 					tableErrorResult.HttpStatusMessage = "Too Many Requests";
 					tableErrorResult.ExtendedErrorCode = "TooManyRequests";
-					tableErrorResult.ExtendedErroMessage = RMResources.TooManyRequests;
+					tableErrorResult.ExtendedErroMessage = /*RMResources.TooManyRequests*/ "Too Many Requests";
 				}
 				else
 				{

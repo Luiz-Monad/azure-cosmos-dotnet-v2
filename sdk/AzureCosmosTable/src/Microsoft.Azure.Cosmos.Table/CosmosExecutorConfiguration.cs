@@ -1,7 +1,9 @@
-using Microsoft.Azure.Documents.Client;
-
 namespace Microsoft.Azure.Cosmos.Table
 {
+	using ConnectionMode = Microsoft.Azure.Documents.Client.ConnectionMode;
+	using ConnectionProtocol = Microsoft.Azure.Documents.Client.Protocol;
+	using ConnectionPolicy = Microsoft.Azure.Documents.Client.ConnectionPolicy;
+
 	public class CosmosExecutorConfiguration
 	{
 		public bool UseConnectionModeDirect
@@ -59,12 +61,12 @@ namespace Microsoft.Azure.Cosmos.Table
 			if (UseConnectionModeDirect)
 			{
 				connectionPolicy.ConnectionMode = ConnectionMode.Direct;
-				connectionPolicy.ConnectionProtocol = Microsoft.Azure.Documents.Client.Protocol.Tcp;
+				connectionPolicy.ConnectionProtocol = ConnectionProtocol.Tcp;
 			}
 			else
 			{
 				connectionPolicy.ConnectionMode = ConnectionMode.Gateway;
-				connectionPolicy.ConnectionProtocol = Microsoft.Azure.Documents.Client.Protocol.Https;
+				connectionPolicy.ConnectionProtocol = ConnectionProtocol.Https;
 				MaxConnectionLimit = MaxConnectionLimit;
 			}
 			if (!string.IsNullOrEmpty(CurrentRegion))

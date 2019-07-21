@@ -1,3 +1,5 @@
-Microsoft.OData.Core
+Microsoft.Azure.Cosmos
+Microsoft.Azure.DocumentDB.Core
 Microsoft.CSharp
+Microsoft.OData.Core
 Newtonsoft.Json

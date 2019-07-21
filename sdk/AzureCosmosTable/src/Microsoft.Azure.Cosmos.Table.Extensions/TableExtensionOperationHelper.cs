@@ -13,6 +13,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Cosmos.Table.Extensions
 {
+	using PartitionKey = Microsoft.Azure.Documents.PartitionKey;
+	using RequestOptions = Microsoft.Azure.Documents.Client.RequestOptions;
+
 	internal static class TableExtensionOperationHelper
 	{
 		internal static async Task<TResult> ExecuteOperationAsync<TResult>(TableOperation operation, CloudTableClient client, CloudTable table, TableRequestOptions requestOptions, OperationContext operationContext, CancellationToken cancellationToken) where TResult : class
@@ -280,7 +283,8 @@ namespace Microsoft.Azure.Cosmos.Table.Extensions
 
 		private static TableResult GetTableResultFromDocument(TableOperation operation, Document response, OperationContext context, TableRequestOptions requestOptions, string sessionToken, double requestCharge)
 		{
-			response.ETag = EtagHelper.ConvertFromBackEndETagFormat(response.ETag);
+			var responseETag = EtagHelper.ConvertFromBackEndETagFormat(response.ETag);
+			response.SetPropertyValue("_etag", responseETag);
 			TableResult tableResult = new TableResult();
 			tableResult.Etag = response.ETag;
 			tableResult.HttpStatusCode = GetSuccessStatusCodeFromOperationType(operation.OperationType);

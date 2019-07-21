@@ -1,5 +1,6 @@
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
+using Microsoft.Azure.Documents.Internals;
 using Microsoft.Azure.Documents.Linq;
 using System;
 using System.Linq;
@@ -10,6 +11,10 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 {
+	using RequestOptions = Microsoft.Azure.Documents.Client.RequestOptions;
+	using ResourceResponse_DocumentCollection = Microsoft.Azure.Documents.Client.ResourceResponse<Documents.DocumentCollection>;
+	using ResourceResponse_Database = Microsoft.Azure.Documents.Client.ResourceResponse<Documents.Database>;
+
 	internal sealed class DocumentCollectionBaseHelpers
 	{
 		private const int DefaultOfferThroughput = 800;
@@ -18,13 +23,14 @@ namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 
 		private const string TestRowKey = "{E18FAFBA-1953-4CB9-83B8-066D2121717D}";
 
-		public static async Task<ResourceResponse<DocumentCollection>> HandleDocumentCollectionRetrieveAsync(string tableName, IDocumentClient client)
+		public static async Task<ResourceResponse_DocumentCollection> HandleDocumentCollectionRetrieveAsync(string tableName, IDocumentClient client)
 		{
 			Uri uri = UriFactory.CreateDocumentCollectionUri("TablesDB", tableName);
 			return await client.ReadDocumentCollectionAsync(uri.ToString());
 		}
 
-		public static async Task<ResourceResponse<DocumentCollection>> HandleCollectionFeedInsertAsync(IDocumentClient client, string collectionName, IndexingPolicy indexingPolicy, RequestOptions requestOption)
+		public static async Task<ResourceResponse_DocumentCollection> HandleCollectionFeedInsertAsync(
+			IDocumentClient client, string collectionName, IndexingPolicy indexingPolicy, RequestOptions requestOption)
 		{
 			await ThrowIfCollectionExists(client, collectionName);
 			RequestOptions requestOptions = requestOption;
@@ -36,7 +42,7 @@ namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 				}
 				requestOption.OfferThroughput = 800;
 			}
-			ResourceResponse<DocumentCollection> collectionResponse2 = null;
+			ResourceResponse_DocumentCollection collectionResponse2 = null;
 			try
 			{
 				collectionResponse2 = await CreateDocumentCollectionAsync(collectionName, client, indexingPolicy, requestOption);
@@ -58,12 +64,12 @@ namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 			return collectionResponse2;
 		}
 
-		public static async Task<ResourceResponse<Database>> CreateTablesDB(IDocumentClient client)
+		public static async Task<ResourceResponse_Database> CreateTablesDB(IDocumentClient client)
 		{
-			ResourceResponse<Database> response = null;
+			ResourceResponse_Database response = null;
 			try
 			{
-				response = await client.CreateDatabaseAsync(new Database
+				response = await client.CreateDatabaseAsync(new Documents.Database
 				{
 					Id = "TablesDB"
 				});
@@ -79,7 +85,8 @@ namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 			}
 		}
 
-		private static async Task<ResourceResponse<DocumentCollection>> CreateDocumentCollectionAsync(string collectionName, IDocumentClient client, IndexingPolicy indexingPolicy, RequestOptions requestOption)
+		private static async Task<ResourceResponse_DocumentCollection> CreateDocumentCollectionAsync(
+			string collectionName, IDocumentClient client, IndexingPolicy indexingPolicy, RequestOptions requestOption)
 		{
 			Uri uri = UriFactory.CreateDatabaseUri("TablesDB");
 			return await client.CreateDocumentCollectionAsync(uri.ToString(), new DocumentCollection
@@ -92,7 +99,12 @@ namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 						"/'$pk'"
 					}
 				},
-				IndexingPolicy = (indexingPolicy ?? new IndexingPolicy(Index.Range(DataType.Number, -1), Index.Range(DataType.String, -1)))
+				IndexingPolicy = (indexingPolicy != null
+					? new Documents.IndexingPolicy() {
+						IndexingMode = (Microsoft.Azure.Documents.IndexingMode)indexingPolicy.IndexingMode
+					}
+					: new Documents.IndexingPolicy(
+						Index.Range(Documents.DataType.Number, -1), Index.Range(Documents.DataType.String, -1)))
 			}, requestOption);
 		}
 
@@ -101,15 +113,24 @@ namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 			Uri databaseUri = UriFactory.CreateDatabaseUri("TablesDB");
 			try
 			{
-				return (await client.CreateOfferQuery($"SELECT * FROM offers o WHERE o.resource = '{(await client.ReadDatabaseAsync(databaseUri)).Resource.SelfLink}'").AsDocumentQuery().ExecuteNextAsync<Offer>()).AsEnumerable().SingleOrDefault() != null;
+				return (await client.CreateOfferQuery($"SELECT * FROM offers o WHERE o.resource = '{(await client.ReadDatabaseAsync(databaseUri)).Resource.SelfLink}'")
+					.AsDocumentQuery().ExecuteNextAsync<Offer>()).AsEnumerable().SingleOrDefault() != null;
 			}
-			catch (NotFoundException)
-			{
-				return false;
-			}
+			// catch (NotFoundException)
+			// {
+			// 	return false;
+			// }
 			catch (DocumentClientException ex2)
 			{
 				if (ex2.StatusCode.HasValue && ex2.StatusCode.Value.Equals(HttpStatusCode.NotFound))
+				{
+					return false;
+				}
+				throw;
+			}
+			catch (Exception ex) 
+			{
+				if (ex.GetType().Name == "NotFoundException") 
 				{
 					return false;
 				}
@@ -122,19 +143,21 @@ namespace Microsoft.Azure.Cosmos.Tables.SharedFiles
 			bool collectionExists = false;
 			try
 			{
-				await DocumentEntityCollectionBaseHelpers.HandleEntityRetrieveAsync(tableName, "{D345FA99-84DC-48CC-BFCE-2CF8ED99D80D}", "{E18FAFBA-1953-4CB9-83B8-066D2121717D}", client, null, CancellationToken.None);
+				await DocumentEntityCollectionBaseHelpers.HandleEntityRetrieveAsync(tableName, 
+					"{D345FA99-84DC-48CC-BFCE-2CF8ED99D80D}", "{E18FAFBA-1953-4CB9-83B8-066D2121717D}", client, null, CancellationToken.None);
 				collectionExists = true;
 			}
-			catch (DocumentClientException ex)
+			catch (DocumentClientException)
 			{
-				if (ex.StatusCode == HttpStatusCode.NotFound && !string.IsNullOrWhiteSpace(ex.ResourceAddress) && ex.ResourceAddress.ToLowerInvariant().Contains("/docs/"))
-				{
-					collectionExists = true;
-				}
+				// if (ex.StatusCode == HttpStatusCode.NotFound && !string.IsNullOrWhiteSpace(ex.ResourceAddress) && 
+				// 	ex.ResourceAddress.ToLowerInvariant().Contains("/docs/"))
+				// {
+				// 	collectionExists = true;
+				// }
 			}
 			if (collectionExists)
 			{
-				throw new DocumentClientException("The specified table already exists.", HttpStatusCode.Conflict, SubStatusCodes.Unknown);
+				throw new DocumentClientExceptionInternal("The specified table already exists.", HttpStatusCode.Conflict, null);
 			}
 		}
 	}

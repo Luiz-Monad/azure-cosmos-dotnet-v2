@@ -1,4 +1,5 @@
 using Microsoft.Azure.Documents;
+using Microsoft.Azure.Documents.Internals;
 using System;
 using System.Net;
 
@@ -29,20 +30,20 @@ namespace Microsoft.Azure.Cosmos.Table.Extensions.Shared
 			{
 				if (ex2.Message.Contains("Resource Not Found"))
 				{
-					return new DocumentClientException("The specified resource does not exist.", ex2, HttpStatusCode.NotFound, null, "ResourceNotFound");
+					return new DocumentClientExceptionInternal("The specified resource does not exist.", ex2, HttpStatusCode.NotFound, null, "ResourceNotFound");
 				}
 				if (ex2.Message.Contains("One of the specified"))
 				{
-					return new DocumentClientException("The update condition specified in the request was not satisfied.", ex2, HttpStatusCode.PreconditionFailed, null, "ConditionNotMet");
+					return new DocumentClientExceptionInternal("The update condition specified in the request was not satisfied.", ex2, HttpStatusCode.PreconditionFailed, null, "ConditionNotMet");
 				}
 				if (ex2.Message.Contains("Resource with specified id or name already exists"))
 				{
-					return new DocumentClientException("The specified entity already exists.", ex2, HttpStatusCode.Conflict, null, "EntityAlreadyExists");
+					return new DocumentClientExceptionInternal("The specified entity already exists.", ex2, HttpStatusCode.Conflict, null, "EntityAlreadyExists");
 				}
 			}
 			else if (ex2.StatusCode == HttpStatusCode.RequestEntityTooLarge)
 			{
-				new DocumentClientException("The request body is too large and exceeds the maximum permissible limit.", ex2, HttpStatusCode.RequestEntityTooLarge, null, "RequestBodyTooLarge");
+				new DocumentClientExceptionInternal("The request body is too large and exceeds the maximum permissible limit.", ex2, HttpStatusCode.RequestEntityTooLarge, null, "RequestBodyTooLarge");
 			}
 			return ex;
 		}

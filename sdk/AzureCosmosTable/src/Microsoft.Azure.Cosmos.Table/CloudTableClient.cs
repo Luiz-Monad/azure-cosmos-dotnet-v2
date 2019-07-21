@@ -18,7 +18,9 @@ namespace Microsoft.Azure.Cosmos.Table
 	{
 		private string _accountName;
 
-		internal static Func<Uri, string, ConnectionPolicy, Microsoft.Azure.Documents.ConsistencyLevel?, IDocumentClient> DocClientCreator = (Uri accountUri, string key, ConnectionPolicy connectionPolicy, Microsoft.Azure.Documents.ConsistencyLevel? consistencyLevel) => new DocumentClient(accountUri, key, EntityTranslator.JsonSerializerSettings, connectionPolicy, consistencyLevel);
+		internal static Func<Uri, string, ConnectionPolicy, Microsoft.Azure.Documents.ConsistencyLevel?, IDocumentClient> DocClientCreator = 
+			(accountUri, key, connectionPolicy, consistencyLevel) => 
+				new DocumentClient(accountUri, key, EntityTranslator.JsonSerializerSettings, connectionPolicy, consistencyLevel);
 
 		private Lazy<IDocumentClient> lazyDocumentClient;
 

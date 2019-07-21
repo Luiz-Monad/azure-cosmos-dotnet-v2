@@ -1,4 +1,4 @@
-using Microsoft.Azure.Documents;
+using Microsoft.Azure.Documents.Internals;
 using System.Globalization;
 
 namespace Microsoft.Azure.Cosmos.Table

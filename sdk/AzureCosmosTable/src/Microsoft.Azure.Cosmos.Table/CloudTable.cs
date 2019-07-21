@@ -621,7 +621,7 @@ namespace Microsoft.Azure.Cosmos.Table
 			IndexingPolicy indexingPolicy = new IndexingPolicy();
 			if (mode.HasValue)
 			{
-				indexingPolicy.IndexingMode = (Microsoft.Azure.Documents.IndexingMode)mode.Value;
+				indexingPolicy.IndexingMode = mode.Value;
 			}
 			return JsonConvert.SerializeObject(indexingPolicy);
 		}

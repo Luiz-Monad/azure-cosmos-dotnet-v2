@@ -1,5 +1,5 @@
 using Microsoft.Azure.Cosmos.Tables.SharedFiles;
-using Microsoft.Azure.Documents.Client;
+using Microsoft.Azure.Documents.Client.Internals;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

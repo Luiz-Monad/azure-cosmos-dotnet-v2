@@ -34,11 +34,11 @@ namespace Microsoft.Azure.Cosmos.Table.Extensions
 					ThrowCancellationIfRequested(cancellationToken);
 					return await executionMethod();
 				}
-				catch (NotFoundException ex)
-				{
-					Logger.LogError(operationContext, "Retry policy did not allow for a retry. Failing with {0}.", ex.Message);
-					throw;
-				}
+				// catch (NotFoundException ex)
+				// {
+				// 	Logger.LogError(operationContext, "Retry policy did not allow for a retry. Failing with {0}.", ex.Message);
+				// 	throw;
+				// }
 				catch (StorageException ex2)
 				{
 					if (retryPolicyInstance == null)
@@ -57,6 +57,14 @@ namespace Microsoft.Azure.Cosmos.Table.Extensions
 						throw;
 					}
 					previousException = ex2;
+				}	
+				catch (Exception ex)
+				{
+					if (ex.GetType().Name == "NotFoundException") 
+					{
+						Logger.LogError(operationContext, "Retry policy did not allow for a retry. Failing with {0}.", ex.Message);
+						throw;
+					}
 				}
 				if (retryInterval < TimeSpan.Zero || retryInterval > MaximumRetryBackoff)
 				{
